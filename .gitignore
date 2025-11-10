@@ -1,0 +1,7 @@
+.flash.jlink
+.venv
+tags
+*.swp
+amotaOut
+bin
+
