@@ -37,6 +37,9 @@
 # This is part of revision release_sdk_3_2_0-dd5f40c14b of the AmbiqSuite Development Package.
 #
 #******************************************************************************#}}}
+#:make -j$(sysctl -n hw.ncpu) -l$(sysctl -n hw.ncpu)
+#:terminal bash -c "JLinkSWOViewerCL -swofreq 3000000 -cpufreq 48236000 -itmmask 0x1 -device AMA3B1KK-KQR | tee swo.log"
+
 TARGET := HelloPickFirmware_build
 COMPILERNAME := gcc
 PROJECT := HelloPick_Apollo3_ver4
@@ -109,7 +112,9 @@ DEFINES+= -DHCI_TRACE_ENABLED
 endif
 #}}}
 #includes {{{
-INCLUDES = -I$(SDKROOT)
+INCLUDES = -Isrc
+INCLUDES+= -IsensirionSGP40
+INCLUDES+= -I$(SDKROOT)
 INCLUDES+= -I$(SDKROOT)/CMSIS/ARM/Include
 INCLUDES+= -I$(SDKROOT)/CMSIS/AmbiqMicro/Include
 INCLUDES+= -I$(SDKROOT)/ambiq_ble/apps/amota
@@ -149,8 +154,6 @@ INCLUDES+= -I$(SDKROOT)/third_party/cordio/wsf/sources/util
 INCLUDES+= -I$(SDKROOT)/third_party/uecc
 INCLUDES+= -I$(SDKROOT)/utils
 INCLUDES+= -I$(SDKROOT)/boards/$(PART)_evb/bsp
-INCLUDES+= -Isrc
-INCLUDES+= -IsensirionSGP40
 #}}}
 #VPATH#{{{
 VPATH =:src
@@ -393,8 +396,8 @@ DEPS = $(CSRC:%.c=$(BINDIR)/%.d)
 DEPS+= $(ASRC:%.s=$(BINDIR)/%.d)
 
 LIBS = $(SDKROOT)/mcu/apollo3/hal/gcc/bin/libam_hal.a
-LIBS += $(SDKROOT)/boards/apollo3_evb/bsp/gcc/bin/libam_bsp.a
-LIBS += sensirionSGP40/bin/sgp40_apollo3.a
+LIBS+= $(SDKROOT)/boards/apollo3_evb/bsp/gcc/bin/libam_bsp.a
+LIBS+= sensirionSGP40/bin/sgp40_apollo3.a
 
 #FLAGS#{{{
 CFLAGS = -mthumb -mcpu=$(CPU) -mfpu=$(FPU) -mfloat-abi=$(FABI)
@@ -425,7 +428,7 @@ CPFLAGS = -Obinary
 ODFLAGS = -S
 #}}}
 #### Build ####{{{
-all: amota tags
+all: amota
 
 helloPick: directories $(LIBS) $(BINDIR)/$(TARGET)$(BUILDNUM).bin
 
@@ -465,7 +468,6 @@ $(BINDIR)/$(TARGET)$(BUILDNUM).bin: $(BINDIR)/$(TARGET)$(BUILDNUM).axf
 #}}}
 #### AMOTA ####{{{
 
-#adb push /storage/sdcard0/Download/                                                                                                                                                                                                                                                           
 PY := .venv/bin/python3
 PIP := .venv/bin/pip
 APOLLO3SCRIPT := $(SDKROOT)/tools/apollo3_scripts
@@ -511,6 +513,9 @@ flash:
 	$(Q) echo "exit" >> .flash.jlink
 	$(Q) JlinkExe -nogui 1 -Device AMA3B1KK-KQR -If SWD -Speed 4000 -Autoconnect 1 -CommandFile .flash.jlink
 
+adbpush:
+	adb push $(AMOTADIR)/$(TARGET)$(BUILDNUM).bin /storage/sdcard0/Download/
+
 tags:
 	$(Q) echo "Generating tags under $(SDKROOT) and HelloPick_Apollo3_ver4/"
 	$(Q) find ../ \( -path "./archive" -o -path "**/FreeRTOS9" -o -path "**/apollo3p*" -o -path "**/SVD" -o -path "**/examples" -o -path "apollo3_evb_cygnus" -o -path "**/docs" \) -prune -o \
@@ -520,6 +525,10 @@ tags:
 archive:
 	cd ../ && \
 	zip -r ./archive/$$(date +%Y%m%d)_HelloPickFirmware_src_build$(BUILDNUM).zip ./$(PROJECT) -x '*.git*' '*.DS_Store' 'archive/*' '*/.venv/*' '*.swp' '*/tags' '*/.flash.jlink'
+
+swoview:
+	JLinkSWOViewerCL -swofreq 3000000 -cpufreq 48236000 -itmmask 0x1 -device AMA3B1KK-KQR
+	
 
 clean:
 	$(Q) echo "Cleaning..."

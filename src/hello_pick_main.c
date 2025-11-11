@@ -337,8 +337,8 @@ static void HelloPickSetup()
 void firstAdvTask()
 {
     // 初回のアドバタイズ開始、以降アドバタイズ停止時のコールバックを起点に処理
-    wsfEventMask_t mask;
-    wsfMsgHdr_t hdr;
+    wsfEventMask_t mask = 0xFF;
+    wsfMsgHdr_t hdr = {0xFFFF,0xFF,0xFF};
     AppAdvStartTimerCallback(mask, &hdr);
     vTaskSuspend(NULL);
 }
