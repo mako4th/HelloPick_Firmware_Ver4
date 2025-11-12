@@ -37,8 +37,6 @@
 # This is part of revision release_sdk_3_2_0-dd5f40c14b of the AmbiqSuite Development Package.
 #
 #******************************************************************************#}}}
-#:make -j$(sysctl -n hw.ncpu) -l$(sysctl -n hw.ncpu)
-#:terminal bash -c "JLinkSWOViewerCL -swofreq 3000000 -cpufreq 48236000 -itmmask 0x1 -device AMA3B1KK-KQR | tee swo.log"
 
 TARGET := HelloPickFirmware_build
 COMPILERNAME := gcc
@@ -472,18 +470,18 @@ PY := .venv/bin/python3
 PIP := .venv/bin/pip
 APOLLO3SCRIPT := $(SDKROOT)/tools/apollo3_scripts
 APOLLO3AMOTASC := $(SDKROOT)/tools/apollo3_amota/scripts
-AMOTADIR := amotaOut
+AMOTADIR := amotaout
 #$(info $(BUILDNUM))
 #$(error STOP)
 
 
-amota: helloPick checkmodule amotaOut $(BINDIR)/$(TARGET)$(BUILDNUM).bin
+amota: helloPick checkmodule amotaout $(BINDIR)/$(TARGET)$(BUILDNUM).bin
 	$(Q) cp $(APOLLO3SCRIPT)/keys_info0.py $(APOLLO3SCRIPT)/keys_info.py
 	$(PY) $(APOLLO3SCRIPT)/create_cust_image_blob.py --bin $(BINDIR)/$(TARGET)$(BUILDNUM).bin --load-address 0xc000 --magic-num 0xcb -o temp_main_nosecure_ota --version 0x0
 	$(PY) $(APOLLO3AMOTASC)/ota_binary_converter.py --appbin temp_main_nosecure_ota.bin -o $(AMOTADIR)/$(TARGET)$(BUILDNUM)
 	$(Q) rm -rf temp_main_nosecure_ota.bin
 
-amotaOut:
+amotaout:
 	$(Q) mkdir -p $@
 	
 
@@ -541,4 +539,7 @@ clean:
 -include $(DEPS)
 endif
 .PHONY: all clean directories buildnumInc buildnumDec flash tags
+
+#:make -j$(sysctl -n hw.ncpu) -l$(sysctl -n hw.ncpu)
+#:terminal bash -c "JLinkSWOViewerCL -swofreq 3000000 -cpufreq 48236000 -itmmask 0x1 -device AMA3B1KK-KQR | tee swo.log"
 # vim: set foldmethod=marker commentstring=#%s :
