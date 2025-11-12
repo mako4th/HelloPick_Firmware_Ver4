@@ -41,7 +41,7 @@ TARGET := sgp40_apollo3.a
 COMPILERNAME := gcc
 PROJECT := sgp40_apollo3
 BINDIR := bin
-SDKROOT = ../../AmbiqSuite_R3.2.0
+SDKROOT = ../AmbiqSuite_R3.2.0
 SHELL:=/bin/bash
 
 # Enable printing explicit commands with 'make VERBOSE=1'

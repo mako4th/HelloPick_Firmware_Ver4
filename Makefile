@@ -41,7 +41,7 @@
 TARGET := HelloPickFirmware_build
 COMPILERNAME := gcc
 PROJECT := HelloPick_Apollo3_ver4
-SDKROOT := ../AmbiqSuite_R3.2.0
+SDKROOT := ./AmbiqSuite_R3.2.0
 SRCDIR := src
 BINDIR := bin
 BUILDNUMHEADER := src/build_number.h
@@ -66,7 +66,7 @@ FPU = fpv4-sp-d16
 #FABI = softfp
 FABI = hard
 
-LINKER_FILE := ./hello_pick_apollo3.ld
+LINKER_FILE := src/hello_pick_apollo3.ld
 STARTUP_FILE := ./startup_$(COMPILERNAME).c
 #}}}
 #### Required Executables ####{{{
@@ -516,13 +516,13 @@ adbpush:
 
 tags:
 	$(Q) echo "Generating tags under $(SDKROOT) and HelloPick_Apollo3_ver4/"
-	$(Q) find ../ \( -path "./archive" -o -path "**/FreeRTOS9" -o -path "**/apollo3p*" -o -path "**/SVD" -o -path "**/examples" -o -path "apollo3_evb_cygnus" -o -path "**/docs" \) -prune -o \
+	$(Q) find ./ \( -path "./archive" -o -path "**/FreeRTOS9" -o -path "**/apollo3p*" -o -path "**/SVD" -o -path "**/examples" -o -path "apollo3_evb_cygnus" -o -path "**/docs" \) -prune -o \
 	-type f \( -name '*.c' -o -name '*.h' -o -name 'Makefile' -o -name '*.mk' \) \
 	-exec ctags -f tags {} +
 
 archive:
 	cd ../ && \
-	zip -r ./archive/$$(date +%Y%m%d)_HelloPickFirmware_src_build$(BUILDNUM).zip ./$(PROJECT) -x '*.git*' '*.DS_Store' 'archive/*' '*/.venv/*' '*.swp' '*/tags' '*/.flash.jlink'
+	zip -r .//archive/$$(date +%Y%m%d)_HelloPickFirmware_src_build$(BUILDNUM).zip . -x '*.git*' '*.DS_Store' 'archive/*' '*/.venv/*' '*.swp' '*/tags' '*/.flash.jlink'
 
 swoview:
 	JLinkSWOViewerCL -swofreq 3000000 -cpufreq 48236000 -itmmask 0x1 -device AMA3B1KK-KQR
