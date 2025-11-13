@@ -5,3 +5,5 @@ tags
 amotaOut
 bin
 AmbiqSuite_R3.2.0/
+.DS_Store
+swo.log

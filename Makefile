@@ -500,11 +500,11 @@ buildnumDec:
 	$(Q) awk '{$$3=$$3-1; print}' $(BUILDNUMHEADER) >temp && mv temp $(BUILDNUMHEADER)
 
 flash:
-	$(Q) echo "$(BINDIR)/$(TARGET).axf"
+	$(Q) echo "$(BINDIR)/$(TARGET)$(BUILDNUM).axf"
 	$(Q) echo "r" > .flash.jlink
 	$(Q) echo "h" >> .flash.jlink
-	$(Q) echo "LoadFile  $(BINDIR)/$(TARGET).axf 0x00000000" >> .flash.jlink
-	$(Q) echo "VerifyBin $(BINDIR)/$(TARGET).axf 0x00000000" >> .flash.jlink
+	$(Q) echo "LoadFile  $(BINDIR)/$(TARGET)$(BUILDNUM).axf 0x0000C000" >> .flash.jlink
+	$(Q) echo "VerifyBin $(BINDIR)/$(TARGET)$(BUILDNUM).axf 0x00000000" >> .flash.jlink
 	$(Q) echo "r" >> .flash.jlink
 	$(Q) echo "g" >> .flash.jlink
 	$(Q) echo "SWOStart" >> .flash.jlink
@@ -540,6 +540,11 @@ clean:
 endif
 .PHONY: all clean directories buildnumInc buildnumDec flash tags
 
+
+#:make buildnumInc
+#:make flash
 #:make -j$(sysctl -n hw.ncpu) -l$(sysctl -n hw.ncpu)
 #:terminal bash -c "JLinkSWOViewerCL -swofreq 3000000 -cpufreq 48236000 -itmmask 0x1 -device AMA3B1KK-KQR | tee swo.log"
+#:!adb push amotaout/HelloPickFirmware_build013.bin /storage/sdcard0/Download/
+#:! ../archive.sh
 # vim: set foldmethod=marker commentstring=#%s :
