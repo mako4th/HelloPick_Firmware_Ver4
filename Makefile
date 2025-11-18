@@ -504,12 +504,11 @@ flash:
 	$(Q) echo "r" > .flash.jlink
 	$(Q) echo "h" >> .flash.jlink
 	$(Q) echo "LoadFile  $(BINDIR)/$(TARGET)$(BUILDNUM).axf 0x0000C000" >> .flash.jlink
-	$(Q) echo "VerifyBin $(BINDIR)/$(TARGET)$(BUILDNUM).axf 0x00000000" >> .flash.jlink
 	$(Q) echo "r" >> .flash.jlink
 	$(Q) echo "g" >> .flash.jlink
 	$(Q) echo "SWOStart" >> .flash.jlink
 	$(Q) echo "exit" >> .flash.jlink
-	$(Q) JlinkExe -nogui 1 -Device AMA3B1KK-KQR -If SWD -Speed 4000 -Autoconnect 1 -CommandFile .flash.jlink
+	$(Q) JlinkExe -nogui 1 -Device AMA3B1KK-KQR -If SWD -Speed 1000 -Autoconnect 1 -CommandFile .flash.jlink
 
 adbpush:
 	adb push $(AMOTADIR)/$(TARGET)$(BUILDNUM).bin /storage/sdcard0/Download/
