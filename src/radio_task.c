@@ -248,6 +248,12 @@ void HelloPick_exactle_stack_init(void)
     // Initialize the WSF security service.
     //
     SecInit();
+//////////////////////////////////////////////////////////////////////////////////
+//テスト中
+//    SecAesInit();
+//    SecCmacInit();
+//    SecEccInit();
+//////////////////////////////////////////////////////////////////////////////////
 
     //
     // Set up callback functions for the various layers of the ExactLE stack.
@@ -258,6 +264,15 @@ void HelloPick_exactle_stack_init(void)
     handlerId = WsfOsSetNextHandler(DmHandler);
     DmDevVsInit(0);
     DmAdvInit();
+
+//////////////////////////////////////////////////////////////////////////////////
+//テスト中
+//    DmConnInit();
+//    DmConnSlaveInit();
+//    DmSecInit();
+//    DmSecLescInit();
+//    DmPrivInit();
+//////////////////////////////////////////////////////////////////////////////////
     DmHandlerInit(handlerId);
 
     handlerId = WsfOsSetNextHandler(HciDrvHandler);
@@ -316,7 +331,7 @@ void RadioTask(void *pvParameters)
     //
     // Enable ITM
     //
-    am_util_debug_printf("Starting wicentric trace:\n\n");
+    APP_TRACE_INFO0("Starting wicentric trace:\n\n");
 #endif
     // am_hal_clkgen_status_t status;
     // am_hal_clkgen_status_get(&status);
@@ -327,8 +342,13 @@ void RadioTask(void *pvParameters)
     //
     // APP_TRACE_INFO0("HciDrvRadioShutdown");
     // HciDrvRadioShutdown();
-    APP_TRACE_INFO0("HciDrvRadioBoot");
+      APP_TRACE_INFO0("HciDrvRadioBoot");
+  //  am_hal_ble_power_control(BLE, AM_HAL_BLE_POWER_OFF);
+
+   // AM_HAL_STATUS_SUCCESS;
     HciDrvRadioBoot(1);
+ //   am_util_delay_ms(1000);
+//    vTaskDelay(pdMS_TO_TICKS(1000));
 
     APP_TRACE_INFO1("MCUCTRL->SCRATCH1 %s\n", MCUCTRL->SCRATCH1 ? "true" : "false");
 
@@ -347,9 +367,6 @@ void RadioTask(void *pvParameters)
     }
     else
     {
-        // exactle_stack_init();
-        // wsfHandlerId_t handlerId = WsfOsSetNextHandler(HelloPickHandler);
-        // HelloPickHandlerInit(handlerId);
         HelloPick_exactle_stack_init();
         HelloPickStart();
     }

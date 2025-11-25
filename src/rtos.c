@@ -163,7 +163,7 @@ void setup_task(void *pvParameters)
     // Print a debug message.
     //
     am_util_debug_printf("Running setup tasks...\r\n");
-    vTaskDelay(pdMS_TO_TICKS(2000)); // cr2032 tanconnectあり　1.12mA　なし 0.63mA
+    //vTaskDelay(pdMS_TO_TICKS(2000)); // cr2032 tanconnectあり　1.12mA　なし 0.63mA
 
     //
     // Run setup functions.

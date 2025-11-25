@@ -80,12 +80,22 @@
 #include "amota_profile_config.h"
 #include "sensor_tasks.h"
 #include "adc_vbatt.h"
+#include "apollo3.h"
 
 //*****************************************************************************
 //
 // Enable printing to the console.
 //
 //*****************************************************************************
+void print_bin(uint32_t v)
+{
+    for (int i = 31; i >= 0; i--) {
+      am_util_debug_printf("%d", (v >> i) & 1);
+        if (i % 8 == 0) am_util_debug_printf(" "); // optional: 8bit区切り
+    }
+    am_util_debug_printf("\n");
+}
+
 void enable_print_interface(void)
 {
     // gpio22をswoに設定
@@ -167,7 +177,12 @@ dump_ota_status(void)
 //*****************************************************************************
 int main(void)
 {
-    //
+//datasheet p145
+MCUCTRL->XTALCTRL = MCUCTRL->XTALCTRL | 0b1111000000;
+//0b 000000 000000 00
+//  kick bias warm
+MCUCTRL->XTALGENCTRL = MCUCTRL->XTALGENCTRL | 0b11111100001101;
+
     // Set the clock frequency
     //
     am_hal_clkgen_control(AM_HAL_CLKGEN_CONTROL_SYSCLK_MAX, 0);
@@ -235,6 +250,8 @@ int main(void)
     // Initialize plotting interface.
     //
     am_util_debug_printf("HelloPick\n");
+    am_util_debug_printf("MCUCTRL->XTALCTRL %x\n", MCUCTRL->XTALCTRL);
+    print_bin(MCUCTRL->XTALCTRL);
 
 #if defined(AM_PART_APOLLO3) || defined(AM_PART_APOLLO3P)
     dump_ota_status();
@@ -242,7 +259,7 @@ int main(void)
 
     am_hal_reset_status_t cause;
     am_hal_reset_status_get(&cause);
-    am_util_stdio_printf("RESET=0x%08lX\n", cause);
+    am_util_debug_printf("RESET=0x%08lX\n", cause);
 
     //
     // Run the application.

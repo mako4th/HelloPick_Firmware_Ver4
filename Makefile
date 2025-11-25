@@ -155,7 +155,7 @@ INCLUDES+= -I$(SDKROOT)/boards/$(PART)_evb/bsp
 #}}}
 #VPATH#{{{
 VPATH =:src
-VPATH+= $(SDKROOT)/ambiq_ble/apps/amota
+VPATH+=:$(SDKROOT)/ambiq_ble/apps/amota
 VPATH+=:$(SDKROOT)/ambiq_ble/profiles/amota
 VPATH+=:$(SDKROOT)/ambiq_ble/services
 VPATH+=:$(SDKROOT)/devices
@@ -498,7 +498,11 @@ buildnumInc:
 
 buildnumDec:
 	$(Q) awk '{$$3=$$3-1; print}' $(BUILDNUMHEADER) >temp && mv temp $(BUILDNUMHEADER)
-
+gdbstart:
+	( \
+	    nohup JLinkGDBServer -device AMA3B1KK-KQR -if SWD -speed 4000 -port 2331 >gdblog.log 2>&1 & \
+	    echo $$! >gdbPID \
+	)
 flash:
 	$(Q) echo "$(BINDIR)/$(TARGET)$(BUILDNUM).axf"
 	$(Q) echo "r" > .flash.jlink
@@ -508,7 +512,8 @@ flash:
 	$(Q) echo "g" >> .flash.jlink
 	$(Q) echo "SWOStart" >> .flash.jlink
 	$(Q) echo "exit" >> .flash.jlink
-	$(Q) JlinkExe -nogui 1 -Device AMA3B1KK-KQR -If SWD -Speed 1000 -Autoconnect 1 -CommandFile .flash.jlink
+	$(Q) JlinkExe -nogui 1 -Device AMA3B1KK-KQR -If SWD -Speed 2000 -Autoconnect 1 -CommandFile .flash.jlink
+	$(Q) JLinkSWOViewerCL -swofreq 3000000 -cpufreq 48236000 -itmmask 0x1 -device AMA3B1KK-KQR
 
 adbpush:
 	adb push $(AMOTADIR)/$(TARGET)$(BUILDNUM).bin /storage/sdcard0/Download/
@@ -525,7 +530,6 @@ archive:
 
 swoview:
 	JLinkSWOViewerCL -swofreq 3000000 -cpufreq 48236000 -itmmask 0x1 -device AMA3B1KK-KQR
-	
 
 clean:
 	$(Q) echo "Cleaning..."
@@ -543,7 +547,9 @@ endif
 #:make buildnumInc
 #:make flash
 #:make -j$(sysctl -n hw.ncpu) -l$(sysctl -n hw.ncpu)
-#:terminal bash -c "JLinkSWOViewerCL -swofreq 3000000 -cpufreq 48236000 -itmmask 0x1 -device AMA3B1KK-KQR | tee swo.log"
+#:terminal bash -c "JLinkSWOViewerCL -swofreq 3000000 -cpufreq 48236000 -itmmask 0x1 -device AMA3B1KK-KQR | tee -a swo.log"
 #:!adb push amotaout/HelloPickFirmware_build013.bin /storage/sdcard0/Download/
 #:! ../archive.sh
+#JLinkGDBServer -device AMA3B1KK-KQR -if SWD -speed 4000 -port 2331
+
 # vim: set foldmethod=marker commentstring=#%s :
