@@ -20,7 +20,6 @@ void workerTask(void *args)
     while (1)
     {
         if (xQueueReceive(sensorQueue, &msg, portMAX_DELAY) == pdTRUE)
-            APP_TRACE_INFO2("==========sensorMsg_t cmd %d value %d", msg.cmd, msg.value);
         {
             if (msg.cmd == SNS_MSG_GETMEASUREMENTS)
             {

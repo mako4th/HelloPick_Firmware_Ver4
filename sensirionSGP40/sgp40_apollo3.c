@@ -12,6 +12,7 @@
 #define I2C_SCL_PIN 8 // SCL (PAD5)
 #define I2C_SDA_PIN 9 // SDA (PAD6)
 #define SPG40_I2C_ADDRESS 0x59
+#define am_util_stdio_printf(...) 
 
 void *g_IOMHandle = NULL;
 GasIndexAlgorithmParams voc_params;

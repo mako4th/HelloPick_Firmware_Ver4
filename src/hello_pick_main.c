@@ -131,8 +131,6 @@ static wsfHandlerId_t AdvWaitTimerHandler;
 
 static wsfTimer_t AdvStartTimer;
 static wsfHandlerId_t AdvStartTimerHandler;
-// static wsfTimer_t AdvStopTimer;
-// static wsfHandlerId_t AdvStopTimerHandler;
 static wsfTimer_t AdvUpdateTimer;
 static wsfHandlerId_t AdvUpdateTimerHandler;
 
@@ -173,10 +171,6 @@ static void AdvWaitTimerCallback(wsfEventMask_t event, wsfMsgHdr_t *pMsg){
     APP_TRACE_INFO0("==========vocRaw rock 0xFFFF=========");
 	vocRawFixed = false;
 }
-// static void AppAdvStopTimer(wsfEventMask_t event, wsfMsgHdr_t *pMsg)
-// {
-//     AppAdvStop();
-// }
 static void resetTimerCallback(wsfEventMask_t event, wsfMsgHdr_t *pMsg)
 {
     APP_TRACE_INFO0("==========Reset=========");
@@ -219,13 +213,13 @@ static void AppAdvStartTimerCallback(wsfEventMask_t event, wsfMsgHdr_t *pMsg)
     make_nrpa();
     DmDevSetRandAddr(bd_addr);
     DmAdvSetAddrType(DM_ADDR_RANDOM);
-    hello_adv.check_digit = crc8((uint8_t *)&hello_adv, sizeof(hello_adv) - 1);
 
     /* set advertising and scan response data for discoverable mode */
     if(vocRawFixed){
-	hello_adv.voc_raw[0] = 0xFF;
-	hello_adv.voc_raw[1] = 0xFF;
+		hello_adv.voc_raw[0] = 0xFF;
+		hello_adv.voc_raw[1] = 0xFF;
     }
+    hello_adv.check_digit = crc8((uint8_t *)&hello_adv, sizeof(hello_adv) - 1);
     AppAdvSetData(APP_ADV_DATA_DISCOVERABLE, sizeof(hello_adv), (uint8_t *)&hello_adv);
     AppAdvSetData(APP_SCAN_DATA_DISCOVERABLE, sizeof(scanRsp), (uint8_t *)&scanRsp);
     AppSetAdvType(DM_ADV_SCAN_UNDIRECT);
@@ -347,14 +341,12 @@ static void helloPickProcMsg(wsfMsgHdr_t *pMsg)
     {
     case DM_RESET_CMPL_IND:
         APP_TRACE_INFO0("DM_RESET_CMP_IND");
-        APP_TRACE_INFO0(">>>>>>>>>>HelloPickSetup");
-        // HelloPickSetup();
-        xTaskCreate(firstAdvTask, "pcfirstADVTask", 512, NULL, 3, NULL);
+		xTaskCreate(firstAdvTask, "pcfirstADVTask", 512, NULL, 3, NULL);
         break;
 
     case DM_ADV_START_IND:
-    	WsfTimerStartSec(&AdvWaitTimer, advWaitTimeSec );
         APP_TRACE_INFO0("DM_ADV_START_IND VocRaw=0xFFFF timer start===================");
+    	WsfTimerStartSec(&AdvWaitTimer, advWaitTimeSec );
         break;
 
     case DM_ADV_STOP_IND:

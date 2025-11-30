@@ -177,15 +177,27 @@ dump_ota_status(void)
 //*****************************************************************************
 int main(void)
 {
-//datasheet p145
-MCUCTRL->XTALCTRL = MCUCTRL->XTALCTRL | 0b1111000000;
-//0b 000000 000000 00
-//  kick bias warm
-MCUCTRL->XTALGENCTRL = MCUCTRL->XTALGENCTRL | 0b11111100001101;
+	//am_hal_ble.h
+	//am_hal_ble_boot(void *pHandle)
+	//am_hal_ble_check_32k_clock(void *pHandle)
+	// doc/Apollo3-Blue-SoC-Datasheet.pdf
+	//datasheet p144
+	
+	uint32_t xcon = MCUCTRL->XTALCTRL;
+	xcon &= 0b111111;
+    // [9..8] XTAL ICOMP trim [7..6] XTAL IBUFF trim
+	xcon |= 0b1101000000;
+	MCUCTRL->XTALCTRL = xcon;
 
+	// kick bias, warm
+    MCUCTRL->XTALGENCTRL |= 0b00011100001100;	
+
+    //
     // Set the clock frequency
     //
     am_hal_clkgen_control(AM_HAL_CLKGEN_CONTROL_SYSCLK_MAX, 0);
+
+	am_util_delay_ms(30);
 
     //
     // Set the default cache configuration
@@ -242,15 +254,21 @@ MCUCTRL->XTALGENCTRL = MCUCTRL->XTALGENCTRL | 0b11111100001101;
 //
 // Enable printing to the console.
 //
+// Makefile HP_RELEASE　フラグで切り替え
 #ifdef AM_DEBUG_PRINTF
     enable_print_interface();
 #endif
-
+	am_util_delay_ms(30);
     //
     // Initialize plotting interface.
     //
-    am_util_debug_printf("HelloPick\n");
-    am_util_debug_printf("MCUCTRL->XTALCTRL %x\n", MCUCTRL->XTALCTRL);
+    am_util_debug_printf("========== HelloPick Boot ==========\n");
+	am_hal_clkgen_status_t cStatus;
+	am_hal_clkgen_status_get(&cStatus);
+	am_util_debug_printf("System clock %d\n",cStatus.ui32SysclkFreq);
+    am_util_debug_printf("MCUCTRL->XTALGENCTRL \n");
+    print_bin(MCUCTRL->XTALGENCTRL);
+    am_util_debug_printf("MCUCTRL->XTALCTRL \n");
     print_bin(MCUCTRL->XTALCTRL);
 
 #if defined(AM_PART_APOLLO3) || defined(AM_PART_APOLLO3P)
@@ -260,15 +278,15 @@ MCUCTRL->XTALGENCTRL = MCUCTRL->XTALGENCTRL | 0b11111100001101;
     am_hal_reset_status_t cause;
     am_hal_reset_status_get(&cause);
     am_util_debug_printf("RESET=0x%08lX\n", cause);
-
     //
     // Run the application.
     //
-    run_tasks();
+	run_tasks();
 
     //
     // We shouldn't ever get here.
     //
+
     while (1)
     {
     }

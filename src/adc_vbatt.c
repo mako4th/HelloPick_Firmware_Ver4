@@ -479,7 +479,7 @@ void vbatt_init(void)
     // alive.
     //
     // am_util_stdio_terminal_clear();
-    am_util_stdio_printf("ADC VBATT and Temperature Sensing Example.\n");
+    //am_util_stdio_printf("ADC VBATT and Temperature Sensing Example.\n");
 
     //
     // Enable floating point.

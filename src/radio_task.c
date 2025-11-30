@@ -97,6 +97,9 @@
 #include "app_ui.h"
 
 #include "hello_pick_main.h"
+//#include "apollo3.h"
+
+//
 //*****************************************************************************
 //
 // Radio task handle.
@@ -331,7 +334,7 @@ void RadioTask(void *pvParameters)
     //
     // Enable ITM
     //
-    APP_TRACE_INFO0("Starting wicentric trace:\n\n");
+    APP_TRACE_INFO0("Starting wicentric trace:\n");
 #endif
     // am_hal_clkgen_status_t status;
     // am_hal_clkgen_status_get(&status);
@@ -340,15 +343,26 @@ void RadioTask(void *pvParameters)
     //
     // Boot the radio.
     //
-    // APP_TRACE_INFO0("HciDrvRadioShutdown");
-    // HciDrvRadioShutdown();
-      APP_TRACE_INFO0("HciDrvRadioBoot");
-  //  am_hal_ble_power_control(BLE, AM_HAL_BLE_POWER_OFF);
+	//APP_TRACE_INFO1("CLKCFG->CLKCFG %x\n", BLEIF->CLKCFG);
+	APP_TRACE_INFO0("========== HciDrvRadioBoot ==========");
 
-   // AM_HAL_STATUS_SUCCESS;
-    HciDrvRadioBoot(1);
- //   am_util_delay_ms(1000);
-//    vTaskDelay(pdMS_TO_TICKS(1000));
+	//cordio側のリトライ1秒間隔x10回 L477
+	//AmbiqSuite_R3.2.0/third_party/cordio/ble-host/sources/hci/ambiq/apollo3/hci_drv_apollo3.c
+	//
+	int count = 0;
+	while(1){
+		count++;
+		if(count > 5){
+			am_hal_reset_control(AM_HAL_RESET_CONTROL_SWPOR, 0);
+			break;
+		}
+
+		APP_TRACE_INFO1("===== RadioBoot %d =====",count);
+		if(HciDrvRadioBoot(1) == AM_HAL_STATUS_SUCCESS){
+			APP_TRACE_INFO0("===== HciDrvRadioBoot success =====");
+			break;
+		}
+	}
 
     APP_TRACE_INFO1("MCUCTRL->SCRATCH1 %s\n", MCUCTRL->SCRATCH1 ? "true" : "false");
 

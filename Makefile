@@ -37,6 +37,8 @@
 # This is part of revision release_sdk_3_2_0-dd5f40c14b of the AmbiqSuite Development Package.
 #
 #******************************************************************************#}}}
+#data seat
+# doc/Apollo3-Blue-SoC-Datasheet.pdf
 
 TARGET := HelloPickFirmware_build
 COMPILERNAME := gcc
@@ -96,18 +98,19 @@ else
 DEFINES = -DPART_$(PART)
 DEFINES+= -DAM_FREERTOS
 DEFINES+= -D'AM_MULTIBOOT_CONFIG_FILE="amota_profile_config.h"'
-DEFINES+= -DAM_PACKAGE_BGA
+#DEFINES+= -DAM_PACKAGE_BGA
 DEFINES+= -DAM_PART_APOLLO3
 DEFINES+= -DSEC_ECC_CFG=SEC_ECC_CFG_HCI
 DEFINES+= -Dgcc
+ 
 
-ifeq ($(HP_RELEASE),)
 DEFINES+= -DAM_DEBUG_PRINTF
+ifeq ($(HP_RELEASE),)
 DEFINES+= -DWSF_TRACE_ENABLED
-DEFINES+= -DHCI_TRACE_ENABLED
+//DEFINES+= -DHCI_TRACE_ENABLED
+endif
 #$(info defines = $(DEFINES))
 #$(error STOP)
-endif
 #}}}
 #includes {{{
 INCLUDES = -Isrc
@@ -492,28 +495,65 @@ checkmodule: .venv
 	$(Q) python3 -m venv .venv
 #}}}
 #### UTIL ####{{{
+# JLinkSWOViewer JLinkSWOViewerCL
+# https://www.segger.com/products/debug-probes/j-link/tools/j-link-swo-viewer/
+# document
+# https://kb.segger.com/J-Link_SWO_Viewer
+#
+# 手動での起動再起動 どちらも開始が多少不安定になる様子
+# JLinkExeの場合
+# JLinkExe -nogui 1 -Device AMA3B1KK-KQR -If SWD -Speed 1000
+# Link->r
+#
+# GDBServerの場合
+# make gdbserver でJLinkGDBServerを起動(nohalt)
+# arm-none-eabi-gdbで接続
+# monitor reset
+# monitor go
+# detach でgdb-gdbserver間の接続解除
+# gdbserverはmake gdbstopでkill
+#################################################################################
 
 buildnumInc:
 	$(Q) awk '{$$3=$$3+1; print}' $(BUILDNUMHEADER) >temp && mv temp $(BUILDNUMHEADER)
 
 buildnumDec:
 	$(Q) awk '{$$3=$$3-1; print}' $(BUILDNUMHEADER) >temp && mv temp $(BUILDNUMHEADER)
-gdbstart:
-	( \
-	    nohup JLinkGDBServer -device AMA3B1KK-KQR -if SWD -speed 4000 -port 2331 >gdblog.log 2>&1 & \
-	    echo $$! >gdbPID \
-	)
+
+gdbserver:
+	JLinkGDBServer -device AMA3B1KK-KQR -if SWD -speed 4000 -port 2331 -nogui -autoconnect 1 -nohalt >gdblog.log 2>&1 & \
+	echo $$! >gdbPID
+
+gdbstop:
+	kill `cat gdbPID`
+
+gdbconnect:
+	$(Q) echo "target remote localhost:2331" >.startup.gdb
+	$(Q) echo "monitor reset" >>.startup.gdb
+	$(Q) echo "load" >>.startup.gdb
+	$(Q) echo "monitor reset" >>.startup.gdb
+	$(Q) echo "monitor go" >>.startup.gdb
+	$(Q) arm-none-eabi-gdb $(BINDIR)/$(TARGET)$(BUILDNUM).axf -x .startup.gdb
+
 flash:
-	$(Q) echo "$(BINDIR)/$(TARGET)$(BUILDNUM).axf"
+	#$(Q) echo "$(BINDIR)/$(TARGET)$(BUILDNUM).axf"
 	$(Q) echo "r" > .flash.jlink
 	$(Q) echo "h" >> .flash.jlink
-	$(Q) echo "LoadFile  $(BINDIR)/$(TARGET)$(BUILDNUM).axf 0x0000C000" >> .flash.jlink
+#	$(Q) echo "erase" >> .flash.jlink
+	$(Q) echo "LoadFile  $(BINDIR)/$(TARGET)$(BUILDNUM).bin 0x0000C000" >> .flash.jlink
 	$(Q) echo "r" >> .flash.jlink
 	$(Q) echo "g" >> .flash.jlink
 	$(Q) echo "SWOStart" >> .flash.jlink
 	$(Q) echo "exit" >> .flash.jlink
-	$(Q) JlinkExe -nogui 1 -Device AMA3B1KK-KQR -If SWD -Speed 2000 -Autoconnect 1 -CommandFile .flash.jlink
-	$(Q) JLinkSWOViewerCL -swofreq 3000000 -cpufreq 48236000 -itmmask 0x1 -device AMA3B1KK-KQR
+	$(Q) JLinkExe -nogui 1 -Device AMA3B1KK-KQR -If SWD -Speed 2000 -CommandFile .flash.jlink
+#	$(Q) JLinkSWOViewerCL -swofreq 3000000 -cpufreq 48236000 -itmmask 0x1 -device AMA3B1KK-KQR | tee -a swo.log
+
+reset:
+	$(Q) echo "r" > .flash.jlink
+	$(Q) echo "g" >> .flash.jlink
+	$(Q) echo "SWOStart" >> .flash.jlink
+	$(Q) echo "exit" >> .flash.jlink
+	$(Q) JLinkExe -nogui 1 -Device AMA3B1KK-KQR -If SWD -Speed 2000 -CommandFile .flash.jlink
 
 adbpush:
 	adb push $(AMOTADIR)/$(TARGET)$(BUILDNUM).bin /storage/sdcard0/Download/
@@ -528,8 +568,11 @@ archive:
 	cd ../ && \
 	zip -r .//archive/$$(date +%Y%m%d)_HelloPickFirmware_src_build$(BUILDNUM).zip . -x '*.git*' '*.DS_Store' 'archive/*' '*/.venv/*' '*.swp' '*/tags' '*/.flash.jlink'
 
+# https://kb.segger.com/J-Link_SWO_Viewer
+#JLinkSWOViewerCL -swoattach 1 -cpufreq 48000000 -device AMA3B1KK-KQR -itmmask 0x1 -swofreq 1000000 | tee -a swo.log
 swoview:
-	JLinkSWOViewerCL -swofreq 3000000 -cpufreq 48236000 -itmmask 0x1 -device AMA3B1KK-KQR
+	JLinkSWOViewerCL -cpufreq 48000000 -device AMA3B1KK-KQR -itmmask 0x1 -swofreq 1000000 | tee -a swo.log
+
 
 clean:
 	$(Q) echo "Cleaning..."
