@@ -341,12 +341,12 @@ static void helloPickProcMsg(wsfMsgHdr_t *pMsg)
     {
     case DM_RESET_CMPL_IND:
         APP_TRACE_INFO0("DM_RESET_CMP_IND");
+        APP_TRACE_INFO0("VocRaw=0xFFFF ===================");
+    	WsfTimerStartSec(&AdvWaitTimer, advWaitTimeSec );
 		xTaskCreate(firstAdvTask, "pcfirstADVTask", 512, NULL, 3, NULL);
         break;
 
     case DM_ADV_START_IND:
-        APP_TRACE_INFO0("DM_ADV_START_IND VocRaw=0xFFFF timer start===================");
-    	WsfTimerStartSec(&AdvWaitTimer, advWaitTimeSec );
         break;
 
     case DM_ADV_STOP_IND:
