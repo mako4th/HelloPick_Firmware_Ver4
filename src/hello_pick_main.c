@@ -145,7 +145,7 @@ static wsfTimerTicks_t advRestartDelayMs = 5000;
 // センサーqueueのアドバタイズ停止からの待ち時間
 static wsfTimerTicks_t sensorQueueDelayMs = 2500;
 // 定期リセット間隔
-static wsfTimerTicks_t resetIntervalSec = 300;//3600 * 24; // 1h=3600sec
+static wsfTimerTicks_t resetIntervalSec = 3600 * 24; // 1h=3600sec
 // アドレス変更用
 uint8_t bd_addr[6];
 //起動再起動時待機フラグ

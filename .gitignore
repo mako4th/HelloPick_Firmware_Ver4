@@ -9,3 +9,5 @@ AmbiqSuite_R3.2.0/
 swo.log
 .startup.gdb
 examples
+gdbPID
+gdblog.log
