@@ -82,11 +82,13 @@
 #include "adc_vbatt.h"
 #include "apollo3.h"
 
-//*****************************************************************************
-//
-// Enable printing to the console.
-//
-//*****************************************************************************
+am_hal_wdt_config_t Wdconf =
+{
+    .ui32Config =
+        _VAL2FLD(WDT_CFG_CLKSEL, WDT_CFG_CLKSEL_1HZ)  |
+        AM_HAL_WDT_ENABLE_RESET,
+    .ui16ResetCount = 20 //20sec
+};
 void print_bin(uint32_t v)
 {
     for (int i = 31; i >= 0; i--) {
@@ -177,21 +179,14 @@ dump_ota_status(void)
 //*****************************************************************************
 int main(void)
 {
-	//am_hal_ble.h
-	//am_hal_ble_boot(void *pHandle)
-	//am_hal_ble_check_32k_clock(void *pHandle)
 	// doc/Apollo3-Blue-SoC-Datasheet.pdf
 	//datasheet p144
-
     //
-    // Set the clock frequency
-    //
-    // [9..8] XTAL ICOMP trim [7..6] XTAL IBUFF trim
+    // XTAL ICOMP[9..8] XTAL IBUFF [7..6]
 	MCUCTRL->XTALCTRL |= 0b1111000000;
-	// kick bias, warm
-    MCUCTRL->XTALGENCTRL |= 0b00111100001100;	
+	// kick bias[13..8]  bias[7..2]
+    MCUCTRL->XTALGENCTRL |= 0b11111100001100;
     am_hal_clkgen_control(AM_HAL_CLKGEN_CONTROL_SYSCLK_MAX, 0);
-
 	am_util_delay_ms(30);
 
     //
@@ -253,7 +248,9 @@ int main(void)
 #ifdef AM_DEBUG_PRINTF
     enable_print_interface();
 #endif
-	am_util_delay_ms(30);
+
+	am_hal_wdt_init(&Wdconf);
+	am_hal_wdt_start();
     //
     // Initialize plotting interface.
     //

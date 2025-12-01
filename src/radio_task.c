@@ -343,25 +343,15 @@ void RadioTask(void *pvParameters)
     //
     // Boot the radio.
     //
-	//APP_TRACE_INFO1("CLKCFG->CLKCFG %x\n", BLEIF->CLKCFG);
 	APP_TRACE_INFO0("========== HciDrvRadioBoot ==========");
 
 	//cordio側のリトライ1秒間隔x10回 L477
 	//AmbiqSuite_R3.2.0/third_party/cordio/ble-host/sources/hci/ambiq/apollo3/hci_drv_apollo3.c
 	//
-	int count = 0;
-	while(1){
-		count++;
-		if(count > 5){
-			am_hal_reset_control(AM_HAL_RESET_CONTROL_SWPOR, 0);
-			break;
-		}
-
+	int count = 1;
+	while(HciDrvRadioBoot(1) != AM_HAL_STATUS_SUCCESS){
 		APP_TRACE_INFO1("===== RadioBoot %d =====",count);
-		if(HciDrvRadioBoot(1) == AM_HAL_STATUS_SUCCESS){
-			APP_TRACE_INFO0("===== HciDrvRadioBoot success =====");
-			break;
-		}
+		count++;
 	}
 
     APP_TRACE_INFO1("MCUCTRL->SCRATCH1 %s\n", MCUCTRL->SCRATCH1 ? "true" : "false");
@@ -391,5 +381,6 @@ void RadioTask(void *pvParameters)
         // the software timers in the WSF scheduler.
         //
         wsfOsDispatcher();
+		am_hal_wdt_restart();
     }
 }

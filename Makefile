@@ -39,7 +39,7 @@
 #******************************************************************************#}}}
 #data seat
 # doc/Apollo3-Blue-SoC-Datasheet.pdf
-# make HP_RELEASE=trueでデバッグ出力あり
+# make HP_RELEASE=trueで最適化あり、デバッグ出力なしのリリースビルド
 
 TARGET := HelloPickFirmware_build
 COMPILERNAME := gcc
@@ -50,6 +50,7 @@ BINDIR := bin
 BUILDNUMHEADER := src/build_number.h
 BUILDNUM := $(shell awk '{printf "%03d",$$3}' $(BUILDNUMHEADER))
 SHELL := /bin/bash
+MAKEFLAGS += -j8
 #$(info $(TARGET))
 #$(error STOP)
 
@@ -569,15 +570,11 @@ buildnumDec:
 
 archive:
 	cd ../ && \
-	zip -r .//archive/$$(date +%Y%m%d)_HelloPickFirmware_src_build$(BUILDNUM).zip . -x '*.git*' '*.DS_Store' 'archive/*' '*/.venv/*' '*.swp' '*/tags' '*/.flash.jlink'
+	cp HelloPick_Apollo3_ver4/amotaout/HelloPickFirmware_build$(BUILDNUM).bin ./archive/ && \
+	zip -yr ./archive/$$(date +%Y%m%d)_HelloPickFirmware_src_build$(BUILDNUM).zip HelloPick_Apollo3_ver4 -x '*/.git*' '*/.DS_Store' 'archive/*' '*/.venv/*' '*.swp' '*/tags' '*/.flash.jlink' '*/.startup.gdb'
 
 adbpush:
 	adb push $(AMOTADIR)/$(TARGET)$(BUILDNUM).bin /storage/sdcard0/Download/
-
-deploy:
-	make clean
-	make buildnumInc
-	make -j8
 
 #}}}
 
