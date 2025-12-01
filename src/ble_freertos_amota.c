@@ -186,15 +186,11 @@ int main(void)
     //
     // Set the clock frequency
     //
-    am_hal_clkgen_control(AM_HAL_CLKGEN_CONTROL_SYSCLK_MAX, 0);
-
-	uint32_t xcon = MCUCTRL->XTALCTRL;
     // [9..8] XTAL ICOMP trim [7..6] XTAL IBUFF trim
-	xcon |= 0b1101000000;
-	MCUCTRL->XTALCTRL = xcon;
-
+	MCUCTRL->XTALCTRL |= 0b1111000000;
 	// kick bias, warm
-    MCUCTRL->XTALGENCTRL |= 0b00011100001100;	
+    MCUCTRL->XTALGENCTRL |= 0b00111100001100;	
+    am_hal_clkgen_control(AM_HAL_CLKGEN_CONTROL_SYSCLK_MAX, 0);
 
 	am_util_delay_ms(30);
 

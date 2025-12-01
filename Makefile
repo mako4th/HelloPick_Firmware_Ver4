@@ -39,6 +39,7 @@
 #******************************************************************************#}}}
 #data seat
 # doc/Apollo3-Blue-SoC-Datasheet.pdf
+# make HP_RELEASE=trueでデバッグ出力あり
 
 TARGET := HelloPickFirmware_build
 COMPILERNAME := gcc
@@ -103,11 +104,10 @@ DEFINES+= -DAM_PART_APOLLO3
 DEFINES+= -DSEC_ECC_CFG=SEC_ECC_CFG_HCI
 DEFINES+= -Dgcc
  
-
+ifneq ($(HP_RELEASE),true)
 DEFINES+= -DAM_DEBUG_PRINTF
-ifeq ($(HP_RELEASE),)
 DEFINES+= -DWSF_TRACE_ENABLED
-//DEFINES+= -DHCI_TRACE_ENABLED
+DEFINES+= -DHCI_TRACE_ENABLED
 endif
 #$(info defines = $(DEFINES))
 #$(error STOP)
@@ -404,10 +404,10 @@ LIBS+= sensirionSGP40/bin/sgp40_apollo3.a
 CFLAGS = -mthumb -mcpu=$(CPU) -mfpu=$(FPU) -mfloat-abi=$(FABI)
 CFLAGS+= -ffunction-sections -fdata-sections -fomit-frame-pointer
 CFLAGS+= -MMD -MP -std=c99 -Wall
-ifeq ($(HP_RELEASE),)
-CFLAGS+= -g -O0
-else
+ifeq ($(HP_RELEASE),true)
 CFLAGS+= -O3
+else
+CFLAGS+= -g -O0
 endif
 CFLAGS+= $(DEFINES)
 CFLAGS+= $(INCLUDES)
@@ -494,7 +494,7 @@ checkmodule: .venv
 .venv:
 	$(Q) python3 -m venv .venv
 #}}}
-#### UTIL ####{{{
+#### DEBUG ####{{{
 # JLinkSWOViewer JLinkSWOViewerCL
 # https://www.segger.com/products/debug-probes/j-link/tools/j-link-swo-viewer/
 # document
@@ -513,12 +513,6 @@ checkmodule: .venv
 # detach でgdb-gdbserver間の接続解除
 # gdbserverはmake gdbstopでkill
 #################################################################################
-
-buildnumInc:
-	$(Q) awk '{$$3=$$3+1; print}' $(BUILDNUMHEADER) >temp && mv temp $(BUILDNUMHEADER)
-
-buildnumDec:
-	$(Q) awk '{$$3=$$3-1; print}' $(BUILDNUMHEADER) >temp && mv temp $(BUILDNUMHEADER)
 
 gdbserver:
 	JLinkGDBServer -device AMA3B1KK-KQR -if SWD -speed 4000 -port 2331 -nogui -autoconnect 1 -nohalt >gdblog.log 2>&1 & \
@@ -555,31 +549,44 @@ reset:
 	$(Q) echo "exit" >> .flash.jlink
 	$(Q) JLinkExe -nogui 1 -Device AMA3B1KK-KQR -If SWD -Speed 2000 -CommandFile .flash.jlink
 
-adbpush:
-	adb push $(AMOTADIR)/$(TARGET)$(BUILDNUM).bin /storage/sdcard0/Download/
-
 tags:
 	$(Q) echo "Generating tags under $(SDKROOT) and HelloPick_Apollo3_ver4/"
 	$(Q) find ./ \( -path "./archive" -o -path "**/FreeRTOS9" -o -path "**/apollo3p*" -o -path "**/SVD" -o -path "**/examples" -o -path "apollo3_evb_cygnus" -o -path "**/docs" \) -prune -o \
 	-type f \( -name '*.c' -o -name '*.h' -o -name 'Makefile' -o -name '*.mk' \) \
 	-exec ctags -f tags {} +
 
-archive:
-	cd ../ && \
-	zip -r .//archive/$$(date +%Y%m%d)_HelloPickFirmware_src_build$(BUILDNUM).zip . -x '*.git*' '*.DS_Store' 'archive/*' '*/.venv/*' '*.swp' '*/tags' '*/.flash.jlink'
-
 # https://kb.segger.com/J-Link_SWO_Viewer
 #JLinkSWOViewerCL -swoattach 1 -cpufreq 48000000 -device AMA3B1KK-KQR -itmmask 0x1 -swofreq 1000000 | tee -a swo.log
 swoview:
 	JLinkSWOViewerCL -cpufreq 48000000 -device AMA3B1KK-KQR -itmmask 0x1 -swofreq 1000000 | tee -a swo.log
+#}}}
+#### DEPLOY ####{{{
+buildnumInc:
+	$(Q) awk '{$$3=$$3+1; print}' $(BUILDNUMHEADER) >temp && mv temp $(BUILDNUMHEADER)
 
+buildnumDec:
+	$(Q) awk '{$$3=$$3-1; print}' $(BUILDNUMHEADER) >temp && mv temp $(BUILDNUMHEADER)
+
+archive:
+	cd ../ && \
+	zip -r .//archive/$$(date +%Y%m%d)_HelloPickFirmware_src_build$(BUILDNUM).zip . -x '*.git*' '*.DS_Store' 'archive/*' '*/.venv/*' '*.swp' '*/tags' '*/.flash.jlink'
+
+adbpush:
+	adb push $(AMOTADIR)/$(TARGET)$(BUILDNUM).bin /storage/sdcard0/Download/
+
+deploy:
+	make clean
+	make buildnumInc
+	make -j8
+
+#}}}
 
 clean:
 	$(Q) echo "Cleaning..."
 	$(Q) $(RM) -rf $(BINDIR) 
 	$(Q) $(RM) -rf $(AMOTADIR) 
+	$(Q) $(RM)  gdbPID tags gdblog.log
 	$(MAKE) -C sensirionSGP40 $@
-#}}}
 
 # Automatically include any generated dependencies
 -include $(DEPS)
