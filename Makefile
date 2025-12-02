@@ -582,7 +582,7 @@ clean:
 	$(Q) echo "Cleaning..."
 	$(Q) $(RM) -rf $(BINDIR) 
 	$(Q) $(RM) -rf $(AMOTADIR) 
-	$(Q) $(RM)  gdbPID tags gdblog.log
+	$(Q) $(RM) -rf gdbPID tags gdblog.log
 	$(MAKE) -C sensirionSGP40 $@
 
 # Automatically include any generated dependencies
