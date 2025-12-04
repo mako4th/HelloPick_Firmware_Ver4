@@ -145,7 +145,7 @@ static wsfTimerTicks_t advRestartDelayMs = 5000;
 // センサーqueueのアドバタイズ停止からの待ち時間
 static wsfTimerTicks_t sensorQueueDelayMs = 2500;
 // 定期リセット間隔
-static wsfTimerTicks_t resetIntervalSec = 3600 * 24; // 1h=3600sec
+//static wsfTimerTicks_t resetIntervalSec = 3600 * 24; // 1h=3600sec
 // アドレス変更用
 uint8_t bd_addr[6];
 //起動再起動時待機フラグ
@@ -294,22 +294,26 @@ static void HelloPickSetup()
 
     APP_TRACE_INFO2("\nApollo3 deviceID %x %x", chipIDs[0], chipIDs[1]);
 
-    // 起動再起動時の待機タイマー
+    // 起動時にVocRawを0xFFFFに固定するタイマー DM_RESET_CMPL_INDでタイマースタート
     AdvWaitTimerHandler = WsfOsSetNextHandler(AdvWaitTimerCallback);
     AdvWaitTimer.handlerId = AdvWaitTimerHandler;
 
-    // アドバタイズ開始のタイマー
+/***********************************************************************/
+// 通常動作時のタイマー DM_ADV_STOP_IND でタイマースタート
+// アドバタイズ開始
     AdvStartTimerHandler = WsfOsSetNextHandler(AppAdvStartTimerCallback);
     AdvStartTimer.handlerId = AdvStartTimerHandler;
-
-    // アドバタイズデータ更新タイマー
+// アドバタイズデータ更新
     AdvUpdateTimerHandler = WsfOsSetNextHandler(sendSensorQueue);
     AdvUpdateTimer.handlerId = AdvUpdateTimerHandler;
+/***********************************************************************/
+
+
 
     // 定期リセットタイマー
-    resetTimerHandler = WsfOsSetNextHandler(resetTimerCallback);
-    resetTimer.handlerId = resetTimerHandler;
-    WsfTimerStartSec(&resetTimer, resetIntervalSec);
+    //resetTimerHandler = WsfOsSetNextHandler(resetTimerCallback);
+    //resetTimer.handlerId = resetTimerHandler;
+    //WsfTimerStartSec(&resetTimer, resetIntervalSec);
 
     // センサー駆動タスクとメッセージキュー
     sensorQueue = xQueueCreate(8, sizeof(sensorMsg_t));

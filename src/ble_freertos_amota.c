@@ -185,7 +185,7 @@ int main(void)
     // XTAL ICOMP[9..8] XTAL IBUFF [7..6]
 	MCUCTRL->XTALCTRL |= 0b1111000000;
 	// kick bias[13..8]  bias[7..2]
-    MCUCTRL->XTALGENCTRL |= 0b11111100001100;
+    MCUCTRL->XTALGENCTRL |= 0b11111100011100;
     am_hal_clkgen_control(AM_HAL_CLKGEN_CONTROL_SYSCLK_MAX, 0);
 	am_util_delay_ms(30);
 

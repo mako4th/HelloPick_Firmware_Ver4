@@ -356,6 +356,7 @@ void RadioTask(void *pvParameters)
 
     APP_TRACE_INFO1("MCUCTRL->SCRATCH1 %s\n", MCUCTRL->SCRATCH1 ? "true" : "false");
 
+	// WDTでの再起動時はMCUCTRL->SCRATCH1 == true  (AMOTAスキップ)
     if (MCUCTRL->SCRATCH1 == 0)
     {
         //
