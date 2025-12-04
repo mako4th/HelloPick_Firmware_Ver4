@@ -39,7 +39,7 @@
 #******************************************************************************#}}}
 #data seat
 # doc/Apollo3-Blue-SoC-Datasheet.pdf
-# make HP_RELEASE=trueで最適化あり、デバッグ出力なしのリリースビルド
+# make DEBUG=trueでデバッグビルド
 
 TARGET := HelloPickFirmware_build
 COMPILERNAME := gcc
@@ -105,7 +105,7 @@ DEFINES+= -DAM_PART_APOLLO3
 DEFINES+= -DSEC_ECC_CFG=SEC_ECC_CFG_HCI
 DEFINES+= -Dgcc
  
-ifneq ($(HP_RELEASE),true)
+ifeq ($(DEBUG),true)
 DEFINES+= -DAM_DEBUG_PRINTF
 DEFINES+= -DWSF_TRACE_ENABLED
 DEFINES+= -DHCI_TRACE_ENABLED
@@ -405,10 +405,10 @@ LIBS+= sensirionSGP40/bin/sgp40_apollo3.a
 CFLAGS = -mthumb -mcpu=$(CPU) -mfpu=$(FPU) -mfloat-abi=$(FABI)
 CFLAGS+= -ffunction-sections -fdata-sections -fomit-frame-pointer
 CFLAGS+= -MMD -MP -std=c99 -Wall
-ifeq ($(HP_RELEASE),true)
-CFLAGS+= -O3
-else
+ifeq ($(DEBUG),true)
 CFLAGS+= -g -O0
+else
+CFLAGS+= -O3
 endif
 CFLAGS+= $(DEFINES)
 CFLAGS+= $(INCLUDES)
@@ -569,9 +569,10 @@ buildnumDec:
 	$(Q) awk '{$$3=$$3-1; print}' $(BUILDNUMHEADER) >temp && mv temp $(BUILDNUMHEADER)
 
 archive:
-	cd ../ && \
-	cp HelloPick_Apollo3_ver4/amotaout/HelloPickFirmware_build$(BUILDNUM).bin ./archive/ && \
-	zip -yr ./archive/$$(date +%Y%m%d)_HelloPickFirmware_src_build$(BUILDNUM).zip HelloPick_Apollo3_ver4 -x '*/.git*' '*/.DS_Store' 'archive/*' '*/.venv/*' '*.swp' '*/tags' '*/.flash.jlink' '*/.startup.gdb'
+		cd -P ../; \
+		pwd; \
+		cp HelloPick_Apollo3_ver4/amotaout/HelloPickFirmware_build$(BUILDNUM).bin ./archive; \
+		zip -yr ./archive/$$(date +%Y%m%d)_HelloPickFirmware_src_build$(BUILDNUM).zip HelloPick_Apollo3_ver4 -x '*/.git*' '*/.DS_Store' 'archive/*' '*/.venv/*' '*.swp' '*/tags' '*/.flash.jlink' '*/.startup.gdb'; \
 
 adbpush:
 	adb push $(AMOTADIR)/$(TARGET)$(BUILDNUM).bin /storage/sdcard0/Download/
@@ -584,6 +585,7 @@ clean:
 	$(Q) $(RM) -rf $(AMOTADIR) 
 	$(Q) $(RM) -rf gdbPID tags gdblog.log
 	$(MAKE) -C sensirionSGP40 $@
+	$(MAKE) -C AmbiqSuite_R3.2.0/ $@
 
 # Automatically include any generated dependencies
 -include $(DEPS)
