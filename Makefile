@@ -40,6 +40,7 @@
 #data seat
 # doc/Apollo3-Blue-SoC-Datasheet.pdf
 # make DEBUG=trueでデバッグビルド
+#
 
 TARGET := HelloPickFirmware_build
 COMPILERNAME := gcc
@@ -110,7 +111,8 @@ DEFINES+= -DAM_DEBUG_PRINTF
 DEFINES+= -DWSF_TRACE_ENABLED
 DEFINES+= -DHCI_TRACE_ENABLED
 endif
-#$(info defines = $(DEFINES))
+#$(info DEBUG = $(DEBUG))
+#$(info DEFINES = $(DEFINES))
 #$(error STOP)
 #}}}
 #includes {{{
