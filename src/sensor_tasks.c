@@ -23,8 +23,8 @@ void workerTask(void *args)
         {
             if (msg.cmd == SNS_MSG_GETMEASUREMENTS)
             {
-                hello_adv.battery = getBattLevel();
-                APP_TRACE_INFO2("battery: %fv %d%%", get_batt(), hello_adv.battery);
+                hello_adv.dev_info.battery = getBattLevel();
+                APP_TRACE_INFO2("battery: %fv %d%%", get_batt(), hello_adv.dev_info.battery);
                 uint16_t voc_raw = 0;
                 uint32_t voc_index_value = 0;
                 sgp40_get_voc_sraw_lowpower(&voc_raw, &voc_index_value);

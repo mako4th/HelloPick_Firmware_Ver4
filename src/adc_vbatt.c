@@ -677,9 +677,13 @@ float get_batt()
 }
 uint8_t getBattLevel()
 {
-    float bat = get_batt() * 0.2 - 470; // 1.9V-3.0Vを0%-100%に線形マッピング y=1/11x-172
-    bat = (bat > 100) ? 100 : (bat < 0 ? 0 : bat);
-    return (uint8_t)bat;
+	int min = 1900;
+	int max = 3000;
+	int resMax = 50;
+	int inbat = (int)get_batt();
+	int bat = inbat < min ? min : ( inbat > max ? max : inbat);	
+	uint8_t res = resMax * (bat - min) / ( max - min ); // minmV-maxmVを0-50にスケーリング
+    return res;
 }
 
 //*****************************************************************************

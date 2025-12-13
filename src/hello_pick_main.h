@@ -7,6 +7,14 @@
   Advertising Data
 **************************************************************************************************/
 // アドバタイジングパケット
+typedef union{
+	struct{
+		uint8_t battery :6; 
+		uint8_t voc_res :2;
+	};
+	uint8_t raw;
+} __attribute__((packed)) devinfo_t;
+
 typedef struct
 {
   // --- Flags フィールド ---
@@ -23,8 +31,8 @@ typedef struct
   uint8_t len3;     // 0x18（内容に応じて調整）
   uint8_t type3;    // 0xFF
   uint8_t cid[2];   // Company ID：LSB, MSB（リトルエンディアン）
-  uint8_t tag_type; // 0x01
-  uint8_t battery;  // 0-100
+  uint8_t tag_type; // タグ種別0x01 
+  devinfo_t dev_info;  // .voc_res:上位2bit 判定結果 .battery:下位6bit 2%刻みで(0~50)*2%
   uint8_t lot_no[2];
   uint8_t build_no[2];
   uint8_t serial_no[8];
