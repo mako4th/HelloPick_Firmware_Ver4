@@ -109,7 +109,7 @@ DEFINES+= -Dgcc
 ifeq ($(DEBUG),true)
 DEFINES+= -DAM_DEBUG_PRINTF
 DEFINES+= -DWSF_TRACE_ENABLED
-DEFINES+= -DHCI_TRACE_ENABLED
+#DEFINES+= -DHCI_TRACE_ENABLED
 endif
 #$(info DEBUG = $(DEBUG))
 #$(info DEFINES = $(DEFINES))
@@ -388,6 +388,7 @@ SRC += wsf_timer.c
 SRC += wsf_trace.c
 SRC += wstr.c
 SRC += startup_gcc.c
+SRC += voc_sig_algo.c
 #}}}
 
 CSRC = $(filter %.c,$(SRC))
