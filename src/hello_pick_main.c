@@ -76,6 +76,8 @@
 #include "sensor_tasks.h"
 #include "am_bsp.h"
 #include "am_util.h"
+#include "FreeRTOS.h"
+#include "task.h"
 
 /**************************************************************************************************
   Macros
@@ -220,8 +222,12 @@ static void AppAdvStartTimerCallback(wsfEventMask_t event, wsfMsgHdr_t *pMsg)
 		hello_adv.voc_raw[0] = 0xFF;
 		hello_adv.voc_raw[1] = 0xFF;
     }
-    hello_adv.check_digit = crc8((uint8_t *)&hello_adv, sizeof(hello_adv) - 1);
-    AppAdvSetData(APP_ADV_DATA_DISCOVERABLE, sizeof(hello_adv), (uint8_t *)&hello_adv);
+	adv_payload_hellotag_t adv_snapshot;
+	taskENTER_CRITICAL();
+	adv_snapshot = hello_adv;
+	taskEXIT_CRITICAL();
+    adv_snapshot.check_digit = crc8((uint8_t *)&adv_snapshot, sizeof(adv_snapshot) - 1);
+    AppAdvSetData(APP_ADV_DATA_DISCOVERABLE, sizeof(adv_snapshot), (uint8_t *)&adv_snapshot);
     AppAdvSetData(APP_SCAN_DATA_DISCOVERABLE, sizeof(scanRsp), (uint8_t *)&scanRsp);
     AppSetAdvType(DM_ADV_SCAN_UNDIRECT);
 
